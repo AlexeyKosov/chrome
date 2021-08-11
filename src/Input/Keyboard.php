@@ -239,4 +239,26 @@ class Keyboard
 
         return $this;
     }
+
+    /**
+     * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
+     */
+    public function tab(): Keyboard
+    {
+        return $this->typeRawKey('Tab');
+    }
+
+    /**
+     * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
+     */
+    public function enter(): Keyboard
+    {
+        return $this->press("\r");
+    }
 }
