@@ -14,6 +14,7 @@ namespace HeadlessChromium\Communication;
 use Evenement\EventEmitter;
 use HeadlessChromium\Exception\CommunicationException;
 use HeadlessChromium\Exception\NoResponseAvailable;
+use HeadlessChromium\Exception\OperationTimedOut;
 use HeadlessChromium\Exception\TargetDestroyed;
 
 class Session extends EventEmitter
@@ -74,13 +75,13 @@ class Session extends EventEmitter
     }
 
     /**
-     * @param Message $message
-     * @param int     $timeout
-     *
-     * @throws NoResponseAvailable
-     * @throws CommunicationException
+     * @param Message  $message
+     * @param int|null $timeout
      *
      * @return Response
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
     public function sendMessageSync(Message $message, int $timeout = null): Response
     {
@@ -98,7 +99,7 @@ class Session extends EventEmitter
     /**
      * @return string
      */
-    public function getSessionId()
+    public function getSessionId(): string
     {
         return $this->sessionId;
     }
@@ -106,7 +107,7 @@ class Session extends EventEmitter
     /**
      * @return string
      */
-    public function getTargetId()
+    public function getTargetId(): string
     {
         return $this->targetId;
     }
@@ -114,7 +115,7 @@ class Session extends EventEmitter
     /**
      * @return Connection
      */
-    public function getConnection()
+    public function getConnection(): Connection
     {
         if ($this->destroyed) {
             throw new TargetDestroyed('The session was destroyed.');

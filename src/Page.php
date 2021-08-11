@@ -75,6 +75,7 @@ class Page
      *                        - onLoad: defer script execution after page has loaded (useful for scripts that require the dom to be populated)
      *
      * @throws CommunicationException
+     * @throws Exception\OperationTimedOut
      * @throws NoResponseAvailable
      */
     public function addPreScript(string $script, array $options = []): void
@@ -104,7 +105,7 @@ class Page
      *
      * @return PageLayoutMetrics
      */
-    public function getLayoutMetrics()
+    public function getLayoutMetrics(): PageLayoutMetrics
     {
         $this->assertNotClosed();
 
@@ -142,6 +143,8 @@ class Page
      *
      * @param string $username
      * @param string $password
+     *
+     * @throws CommunicationException
      */
     public function setBasicAuthHeader(string $username, string $password): void
     {
@@ -156,6 +159,8 @@ class Page
      * Sets the path to save downloaded files.
      *
      * @param string $path
+     *
+     * @throws CommunicationException
      */
     public function setDownloadPath(string $path): void
     {
@@ -168,13 +173,13 @@ class Page
     /**
      * @param string $url
      * @param array  $options
-     *                        - strict: make waitForNAvigation to fail if a new navigation is initiated. Default: false
+     *                        - strict: make waitForNavigation to fail if a new navigation is initiated. Default: false
      *
      * @throws Exception\CommunicationException
      *
      * @return PageNavigation
      */
-    public function navigate(string $url, array $options = [])
+    public function navigate(string $url, array $options = []): PageNavigation
     {
         $this->assertNotClosed();
 
@@ -197,7 +202,7 @@ class Page
      *
      * @return PageEvaluation
      */
-    public function evaluate(string $expression)
+    public function evaluate(string $expression): PageEvaluation
     {
         $this->assertNotClosed();
 
@@ -264,7 +269,7 @@ class Page
     }
 
     /**
-     * Add a script tag to the page (ie. <script>).
+     * Add a script tag to the page (i.e. <script>).
      *
      * Example:
      *
@@ -281,7 +286,7 @@ class Page
      */
     public function addScriptTag(array $options): PageEvaluation
     {
-        if (isset($options['url']) && isset($options['content'])) {
+        if (isset($options['url'], $options['content'])) {
             throw new \InvalidArgumentException('addScript accepts "url" or "content" option, not both');
         } elseif (isset($options['url'])) {
             $scriptFunction = 'async function(src) {
@@ -331,7 +336,7 @@ class Page
      *
      * @return array
      */
-    public function getCurrentLifecycle()
+    public function getCurrentLifecycle(): array
     {
         $this->assertNotClosed();
 
@@ -370,13 +375,13 @@ class Page
      * @param int    $timeout
      * @param null   $loaderId
      *
-     * @throws CommunicationException\CannotReadResponse
+     * @return $this
      * @throws CommunicationException\InvalidResponse
      * @throws Exception\OperationTimedOut
      *
-     * @return $this
+     * @throws CommunicationException\CannotReadResponse
      */
-    public function waitForReload($eventName = self::LOAD, $timeout = 30000, $loaderId = null)
+    public function waitForReload(string $eventName = self::LOAD, int $timeout = 30000, $loaderId = null): Page
     {
         $this->assertNotClosed();
 
@@ -393,14 +398,14 @@ class Page
      * @param string $eventName
      * @param string $loaderId
      *
-     * @throws CommunicationException\CannotReadResponse
-     * @throws CommunicationException\InvalidResponse
-     *
      * @return bool|\Generator
      *
+     * @throws CommunicationException\InvalidResponse
+     *
+     * @throws CommunicationException\CannotReadResponse
      * @internal
      */
-    private function waitForReloadGenerator($eventName, $loaderId)
+    private function waitForReloadGenerator(string $eventName, string $loaderId)
     {
         $delay = 500;
 
@@ -427,7 +432,7 @@ class Page
      *
      * This method is synchronous
      *
-     * Fullpage screenshot exemple:
+     * Fullpage screenshot example:
      *
      * ```php
      *     $page
@@ -440,6 +445,10 @@ class Page
      * @param int|null $timeout
      *
      * @return Clip
+     * @throws CommunicationException
+     * @throws CommunicationException\ResponseHasError
+     * @throws Exception\OperationTimedOut
+     * @throws NoResponseAvailable
      */
     public function getFullPageClip(int $timeout = null): Clip
     {
@@ -690,7 +699,7 @@ class Page
     }
 
     /**
-     * Allows to change viewport size, enabling mobile mode, or changing the scale factor.
+     * Allows changing viewport size, enabling mobile mode, or changing the scale factor.
      *
      * usage:
      *
@@ -701,11 +710,10 @@ class Page
      * @param array $overrides
      *
      * @throws CommunicationException
-     * @throws NoResponseAvailable
      *
      * @return ResponseWaiter
      */
-    public function setDeviceMetricsOverride(array $overrides)
+    public function setDeviceMetricsOverride(array $overrides): ResponseWaiter
     {
         if (!\array_key_exists('width', $overrides)) {
             $overrides['width'] = 0;
@@ -734,11 +742,10 @@ class Page
      * @param int $height
      *
      * @throws CommunicationException
-     * @throws NoResponseAvailable
      *
      * @return ResponseWaiter
      */
-    public function setViewport(int $width, int $height)
+    public function setViewport(int $width, int $height): ResponseWaiter
     {
         return $this->setDeviceMetricsOverride([
             'width' => $width,
@@ -751,7 +758,7 @@ class Page
      *
      * @return Mouse
      */
-    public function mouse()
+    public function mouse(): Mouse
     {
         if (!$this->mouse) {
             $this->mouse = new Mouse($this);
@@ -765,7 +772,7 @@ class Page
      *
      * @return Keyboard
      */
-    public function keyboard()
+    public function keyboard(): Keyboard
     {
         if (!$this->keyboard) {
             $this->keyboard = new Keyboard($this);
@@ -811,9 +818,9 @@ class Page
      * @throws CommunicationException\CannotReadResponse
      * @throws CommunicationException\InvalidResponse
      *
-     * @return mixed
+     * @return string
      */
-    public function getCurrentUrl()
+    public function getCurrentUrl(): string
     {
         // ensure target is not closed
         $this->assertNotClosed();
@@ -828,11 +835,12 @@ class Page
     /**
      * Gets the raw html of the current page.
      *
-     * @throws Exception\CommunicationException
-     *
      * @return string
+     * @throws Exception\EvaluationFailed
+     *
+     * @throws Exception\CommunicationException
      */
-    public function getHtml()
+    public function getHtml(): string
     {
         return $this->evaluate('document.documentElement.outerHTML')->getReturnValue();
     }
@@ -856,7 +864,7 @@ class Page
      *
      * @return CookiesGetter
      */
-    public function readCookies()
+    public function readCookies(): CookiesGetter
     {
         // ensure target is not closed
         $this->assertNotClosed();
@@ -890,7 +898,7 @@ class Page
      *
      * @return CookiesGetter
      */
-    public function readAllCookies()
+    public function readAllCookies(): CookiesGetter
     {
         // ensure target is not closed
         $this->assertNotClosed();
@@ -917,7 +925,7 @@ class Page
      *
      * @return CookiesCollection
      */
-    public function getCookies(int $timeout = null)
+    public function getCookies(int $timeout = null): CookiesCollection
     {
         return $this->readCookies()->await($timeout)->getCookies();
     }
@@ -937,15 +945,20 @@ class Page
      *
      * @return CookiesCollection
      */
-    public function getAllCookies(int $timeout = null)
+    public function getAllCookies(int $timeout = null): CookiesCollection
     {
         return $this->readAllCookies()->await($timeout)->getCookies();
     }
 
     /**
      * @param Cookie[]|CookiesCollection $cookies
+     *
+     * @return ResponseWaiter
+     * @throws CommunicationException
+     * @throws CommunicationException\CannotReadResponse
+     * @throws CommunicationException\InvalidResponse
      */
-    public function setCookies($cookies)
+    public function setCookies($cookies): ResponseWaiter
     {
         // define params to send in cookie message
         $allowedParams = ['url', 'domain', 'path', 'secure', 'httpOnly', 'sameSite', 'expires'];
@@ -993,7 +1006,7 @@ class Page
      *
      * @return ResponseWaiter
      */
-    public function setUserAgent(string $userAgent)
+    public function setUserAgent(string $userAgent): ResponseWaiter
     {
         $response = $this->getSession()
             ->sendMessage(

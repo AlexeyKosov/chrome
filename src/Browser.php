@@ -38,6 +38,9 @@ class Browser
      */
     protected $pagePreScript;
 
+    /**
+     * @throws OperationTimedOut
+     */
     public function __construct(Connection $connection)
     {
         $this->connection = $connection;
@@ -182,7 +185,7 @@ class Browser
      *
      * @return Target|null
      */
-    public function getTarget($targetId)
+    public function getTarget(string $targetId): ?Target
     {
         // make sure target was created (via Target.targetCreated event)
         if (!\array_key_exists($targetId, $this->targets)) {
@@ -195,7 +198,7 @@ class Browser
     /**
      * @return Target[]
      */
-    public function getTargets()
+    public function getTargets(): array
     {
         return \array_values($this->targets);
     }
