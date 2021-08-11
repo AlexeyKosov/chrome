@@ -12,8 +12,12 @@
 namespace HeadlessChromium\Input;
 
 use HeadlessChromium\Communication\Message;
+use HeadlessChromium\Exception\CommunicationException;
 use HeadlessChromium\Exception\ElementNotFoundException;
+use HeadlessChromium\Exception\EvaluationFailed;
 use HeadlessChromium\Exception\JavascriptException;
+use HeadlessChromium\Exception\NoResponseAvailable;
+use HeadlessChromium\Exception\OperationTimedOut;
 use HeadlessChromium\Page;
 
 class Mouse
@@ -46,12 +50,12 @@ class Mouse
      * @param int        $y
      * @param array|null $options
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     *
      * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
-    public function move(int $x, int $y, array $options = null)
+    public function move(int $x, int $y, array $options = null): Mouse
     {
         $this->page->assertNotClosed();
 
@@ -82,10 +86,14 @@ class Mouse
     }
 
     /**
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
+     * @param array|null $options
+     *
+     * @return Mouse
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
-    public function press(array $options = null)
+    public function press(array $options = null): Mouse
     {
         $this->page->assertNotClosed();
         $this->page->getSession()->sendMessageSync(new Message('Input.dispatchMouseEvent', [
@@ -100,10 +108,14 @@ class Mouse
     }
 
     /**
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
+     * @param array|null $options
+     *
+     * @return Mouse
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
-    public function release(array $options = null)
+    public function release(array $options = null): Mouse
     {
         $this->page->assertNotClosed();
         $this->page->getSession()->sendMessageSync(new Message('Input.dispatchMouseEvent', [
@@ -120,10 +132,12 @@ class Mouse
     /**
      * @param array|null $options
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
+     * @return Mouse
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
-    public function click(array $options = null)
+    public function click(array $options = null): Mouse
     {
         $this->press($options);
         $this->release($options);
@@ -136,12 +150,13 @@ class Mouse
      *
      * @param int $distance Distance in pixels
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     *
      * @return $this
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
+     *
+     * @throws CommunicationException
      */
-    public function scrollUp(int $distance)
+    public function scrollUp(int $distance): Mouse
     {
         return $this->scroll((-1 * \abs($distance)));
     }
@@ -151,12 +166,12 @@ class Mouse
      *
      * @param int $distance Distance in pixels
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     *
      * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
-    public function scrollDown(int $distance)
+    public function scrollDown(int $distance): Mouse
     {
         return $this->scroll(\abs($distance));
     }
@@ -167,10 +182,10 @@ class Mouse
      * @param int $distanceY Distance in pixels for the Y axis
      * @param int $distanceX (optional) Distance in pixels for the X axis
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     *
      * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
     private function scroll(int $distanceY, int $distanceX = 0): self
     {
@@ -205,6 +220,10 @@ class Mouse
      * @param int $bottom The element bottom boundary
      *
      * @return self
+     * @throws CommunicationException
+     * @throws CommunicationException\ResponseHasError
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
     private function scrollToBoundary(int $right, int $bottom): self
     {
@@ -239,11 +258,13 @@ class Mouse
      * @param string $selectors selectors to use with document.querySelector
      * @param int    $position  (optional) which element of the result set should be used
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     * @throws \HeadlessChromium\Exception\ElementNotFoundException
-     *
      * @return $this
+     * @throws CommunicationException
+     * @throws CommunicationException\ResponseHasError
+     * @throws ElementNotFoundException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
+     * @throws EvaluationFailed
      */
     public function find(string $selectors, int $position = 1): self
     {

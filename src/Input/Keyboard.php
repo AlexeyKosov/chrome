@@ -12,6 +12,9 @@
 namespace HeadlessChromium\Input;
 
 use HeadlessChromium\Communication\Message;
+use HeadlessChromium\Exception\CommunicationException;
+use HeadlessChromium\Exception\NoResponseAvailable;
+use HeadlessChromium\Exception\OperationTimedOut;
 use HeadlessChromium\Page;
 
 class Keyboard
@@ -41,12 +44,12 @@ class Keyboard
      *
      * @param string $text text string to be typed
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     *
      * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
-    public function typeText(string $text)
+    public function typeText(string $text): Keyboard
     {
         $this->page->assertNotClosed();
 
@@ -76,10 +79,10 @@ class Keyboard
      *
      * @param string $key single raw key to be typed
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     *
      * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
     public function typeRawKey(string $key): self
     {
@@ -110,10 +113,10 @@ class Keyboard
      *
      * @param string $key single key to be typed
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     *
      * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
     public function type(string $key): self
     {
@@ -134,10 +137,10 @@ class Keyboard
      *
      * @param string $key single key to be pressed
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     *
      * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
     public function press(string $key): self
     {
@@ -171,12 +174,12 @@ class Keyboard
      * $page->keyboard()->release(); // release all
      * ```
      *
-     * @param string $key (optional) single key to be released
-     *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
+     * @param string|null $key (optional) single key to be released
      *
      * @return $this
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
     public function release(string $key = null): self
     {
@@ -204,6 +207,9 @@ class Keyboard
      * Release all pressed keys.
      *
      * @return self
+     * @throws CommunicationException
+     * @throws NoResponseAvailable
+     * @throws OperationTimedOut
      */
     private function releaseAll(): self
     {
@@ -217,13 +223,13 @@ class Keyboard
     }
 
     /**
-     * Set the time interval between key strokes in milliseconds.
+     * Set the time interval between keystrokes in milliseconds.
      *
      * @param int $milliseconds
      *
      * @return $this
      */
-    public function setKeyInterval(int $milliseconds)
+    public function setKeyInterval(int $milliseconds): Keyboard
     {
         if ($milliseconds < 0) {
             $milliseconds = 0;
