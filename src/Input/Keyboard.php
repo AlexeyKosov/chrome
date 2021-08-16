@@ -241,24 +241,31 @@ class Keyboard
     }
 
     /**
+     * @param int $keyCode
+     *
      * @return $this
      * @throws CommunicationException
      * @throws NoResponseAvailable
      * @throws OperationTimedOut
      */
-    public function tab(): Keyboard
+    public function typeKeyCode(int $keyCode): self
     {
-        return $this->typeRawKey('Tab');
-    }
+        $this->page->assertNotClosed();
 
-    /**
-     * @return $this
-     * @throws CommunicationException
-     * @throws NoResponseAvailable
-     * @throws OperationTimedOut
-     */
-    public function enter(): Keyboard
-    {
-        return $this->press("\r");
+        $this->page->getSession()->sendMessageSync(new Message('Input.dispatchKeyEvent', [
+            'type' => 'rawKeyDown',
+            'windowsVirtualKeyCode' => $keyCode,
+        ]));
+
+        \usleep($this->sleep);
+
+        $this->page->getSession()->sendMessageSync(new Message('Input.dispatchKeyEvent', [
+            'type' => 'keyUp',
+            'windowsVirtualKeyCode' => $keyCode,
+        ]));
+
+        \usleep($this->sleep);
+
+        return $this;
     }
 }
