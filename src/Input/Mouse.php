@@ -19,6 +19,7 @@ use HeadlessChromium\Exception\JavascriptException;
 use HeadlessChromium\Exception\NoResponseAvailable;
 use HeadlessChromium\Exception\OperationTimedOut;
 use HeadlessChromium\Page;
+use HeadlessChromium\Utils;
 
 class Mouse
 {
@@ -182,6 +183,10 @@ class Mouse
      * @param int $distanceY Distance in pixels for the Y axis
      * @param int $distanceX (optional) Distance in pixels for the X axis
      *
+     * @throws \HeadlessChromium\Exception\CommunicationException
+     * @throws \HeadlessChromium\Exception\NoResponseAvailable
+     * @throws \HeadlessChromium\Exception\OperationTimedOut
+     *
      * @return $this
      * @throws CommunicationException
      * @throws NoResponseAvailable
@@ -190,6 +195,15 @@ class Mouse
     private function scroll(int $distanceY, int $distanceX = 0): self
     {
         $this->page->assertNotClosed();
+
+        $scollableArea = $this->page->getLayoutMetrics()->getContentSize();
+        $visibleArea = $this->page->getLayoutMetrics()->getVisualViewport();
+
+        $distanceX = $this->getMaximumDistance($distanceX, $visibleArea['pageX'], $scollableArea['height']);
+        $distanceY = $this->getMaximumDistance($distanceY, $visibleArea['pageY'], $scollableArea['width']);
+
+        $targetX = $visibleArea['pageX'] + $distanceX;
+        $targetY = $visibleArea['pageY'] + $distanceY;
 
         // make sure the mouse is on the screen
         $this->move($this->x, $this->y);
@@ -202,6 +216,9 @@ class Mouse
             'deltaX' => $distanceX,
             'deltaY' => $distanceY,
         ]));
+
+        // wait until the scroll is done
+        Utils::tryWithTimeout(30000 * 1000, $this->waitForScroll($targetX, $targetY));
 
         // set new position after move
         $this->x += $distanceX;
@@ -303,6 +320,57 @@ class Mouse
             );
 
         return $this;
+    }
+
+    /**
+     * Get the maximum distance to scroll a page.
+     *
+     * @param int $distance Distance to scroll, positive or negative
+     * @param int $current  Current position
+     * @param int $maximum  Maximum posible distance
+     *
+     * @return int allowed distance to scroll
+     */
+    private function getMaximumDistance(int $distance, int $current, int $maximum): int
+    {
+        $result = $current + $distance;
+
+        if ($result < 0) {
+            return $distance + \abs($result);
+        }
+
+        if ($result > $maximum) {
+            return $maximum - $current;
+        }
+
+        return $distance;
+    }
+
+    /**
+     * Wait for the browser to process the scroll command.
+     *
+     * Return the number of microseconds to wait before trying again or true in case of success.
+     *
+     * @see \HeadlessChromium\Utils::tryWithTimeout
+     *
+     * @param int $targetX
+     * @param int $targetY
+     *
+     * @throws \HeadlessChromium\Exception\OperationTimedOut
+     *
+     * @return bool|\Generator
+     */
+    private function waitForScroll(int $targetX, int $targetY)
+    {
+        while (true) {
+            $visibleArea = $this->page->getLayoutMetrics()->getVisualViewport();
+
+            if ($visibleArea['pageX'] === $targetX && $visibleArea['pageY'] === $targetY) {
+                return true;
+            }
+
+            yield 1000;
+        }
     }
 
     /**
