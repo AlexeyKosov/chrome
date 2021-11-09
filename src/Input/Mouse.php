@@ -152,9 +152,9 @@ class Mouse
      * @param int $distance Distance in pixels
      *
      * @return $this
+     *
      * @throws NoResponseAvailable
      * @throws OperationTimedOut
-     *
      * @throws CommunicationException
      */
     public function scrollUp(int $distance): Mouse
@@ -183,11 +183,8 @@ class Mouse
      * @param int $distanceY Distance in pixels for the Y axis
      * @param int $distanceX (optional) Distance in pixels for the X axis
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
-     * @throws \HeadlessChromium\Exception\OperationTimedOut
-     *
      * @return $this
+     *
      * @throws CommunicationException
      * @throws NoResponseAvailable
      * @throws OperationTimedOut
@@ -237,10 +234,6 @@ class Mouse
      * @param int $bottom The element bottom boundary
      *
      * @return self
-     * @throws CommunicationException
-     * @throws CommunicationException\ResponseHasError
-     * @throws NoResponseAvailable
-     * @throws OperationTimedOut
      */
     private function scrollToBoundary(int $right, int $bottom): self
     {
@@ -275,26 +268,23 @@ class Mouse
      * @param string $selectors selectors to use with document.querySelector
      * @param int    $position  (optional) which element of the result set should be used
      *
+     * @throws \HeadlessChromium\Exception\CommunicationException
+     * @throws \HeadlessChromium\Exception\NoResponseAvailable
+     * @throws \HeadlessChromium\Exception\ElementNotFoundException
+     *
      * @return $this
-     * @throws CommunicationException
-     * @throws CommunicationException\ResponseHasError
-     * @throws ElementNotFoundException
-     * @throws NoResponseAvailable
-     * @throws OperationTimedOut
-     * @throws EvaluationFailed
      */
     public function find(string $selectors, int $position = 1): self
     {
         $this->page->assertNotClosed();
-
-        --$position;
 
         try {
             $elementList = $this->page
                 ->evaluate('JSON.parse(JSON.stringify(document.querySelectorAll("'.$selectors.'")));')
                 ->getReturnValue();
 
-            $position = \max(0, (\count($elementList) - 1));
+            $position = \max(0, ($position - 1));
+            $position = \min($position, (\count($elementList) - 1));
 
             $element = $this->page
                 ->evaluate('JSON.parse(JSON.stringify(document.querySelectorAll("'.$selectors.'")['.$position.'].getBoundingClientRect()));')

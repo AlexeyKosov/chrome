@@ -1,6 +1,11 @@
 # CHANGELOG
 
 
+## 1.1.0 (2021-09-26)
+
+* Add DOM element locator
+
+
 ## 1.0.1 (2021-09-01)
 
 * Fix mouse scroll maximum distance
